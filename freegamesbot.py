@@ -1,4 +1,5 @@
 import requests
+from selenium.webdriver import Firefox
 from bs4 import BeautifulSoup
 from time import sleep
 
@@ -48,9 +49,48 @@ class SearchFreeSteamKeys():
                 print('ISTO OCORREU')
                 updateLastSeenFreeSteamKeys(self, article.get('id'))
 
+class SeleniumBusca:
+    def __init__(self):
+        self.browser = Firefox()
+
+    def epicGamesStore(self):
+        self.browser.get('https://www.epicgames.com/store/pt-BR/free-games')
+        elementos = self.browser.find_elements_by_xpath('//div[@data-component="CardGridDesktopBase"]')
+        jogos = list()
+        jogosGratis = list()
+
+        for elemento in elementos: jogos.append(elemento.find_element_by_tag_name('a').get_attribute('href'))
+
+        for jogo in jogos:
+            self.browser.get(jogo)
+
+            try:
+                botoes = self.browser.find_elements_by_tag_name('button')
+
+                for botao in botoes:
+                    if 'continuar' in botao.text.lower():
+                        botao.click()
+            except:
+                pass
+            
+            try:
+                ateQuando = self.browser.find_element_by_class_name('css-etnin6').text
+                nomeJogo = self.browser.title
+                jogosGratis.append([nomeJogo, self.browser.current_url, ateQuando])
+                print(nomeJogo + ' | ' + self.browser.current_url + ' | ' + 'Jogo Grátis!')
+            except:
+                pass
+            sleep(2)
+
+        return jogosGratis
+    
+    def fecharNavegador(self):
+        self.browser.quit()
+
 if __name__ == '__main__':
-    from datetime import datetime
     while True:
-        print(f'Procurando... | {datetime.now().strftime("%d-%m-%y_%Hh%Mm%Ss")}')
-        searchGame = SearchFreeSteamKeys()
-        esperar()
+        print('BUSCANDO!')
+        buscar = SeleniumBusca()
+        print(buscar.epicGamesStore())
+        buscar.fecharNavegador()
+        print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-') 
