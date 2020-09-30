@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from time import sleep
 
 def esperar():
-    sleep(10)
+    sleep(60 * 60 * 2)
 
 class SearchFreeSteamKeys():
     def __init__(self):
