@@ -1,3 +1,5 @@
 .venv/
 tokens.py
 geckodriver.log
+ultimovisto_freesteamkeys.txt
+bot_log.txt
