@@ -1,57 +1,60 @@
 import requests
+import tweepy
+import os
 from selenium.webdriver import Firefox
 from bs4 import BeautifulSoup
 from time import sleep
+from tokens import *
 
-def esperar():
-    sleep(60 * 60 * 2)
-
-class SearchFreeSteamKeys():
+class ProcurarFreeSteamKeys():
     def __init__(self):
-        def logProjeto(self, textLog):
+        def logProjeto(self, textoLog):
             with open('bot_log.txt', 'a') as log:
-                log.write(textLog)
+                log.write(textoLog)
 
-        def retrieveLastSeenFreeSteamKeys(self):
-            with open('last_seen_freesteamkeys.txt') as file:
-                return file.read()
+        def pegarUltimoVistoFreeSteamKeys(self):
+            with open('ultimovisto_freesteamkeys.txt') as arquivo:
+                return arquivo.read()
 
-        def updateLastSeenFreeSteamKeys(self, lastSeen):
-            with open('last_seen_freesteamkeys.txt', 'w') as file:
-                file.write(lastSeen)
+        def atualizarUltimoVistoFreeSteamKeys(self, ultimoVisto):
+            with open('ultimovisto_freesteamkeys.txt', 'w') as arquivo:
+                arquivo.write(ultimoVisto)
 
-        def accessGamePage(url):
-            gamePage = requests.get(url)
-            gamePageSoup = BeautifulSoup(gamePage.text, 'html.parser')
-            ancora = gamePageSoup.find('a', class_='zf-edit-button')
-            gameButton = gamePageSoup.find('a', class_='item-url custom_link_button')
+        def acessarPaginaDoJogo(url):
+            paginaDoJogo = requests.get(url)
+            paginaDoJogoSopa = BeautifulSoup(paginaDoJogo.text, 'html.parser')
+            ancora = paginaDoJogoSopa.find('a', class_='zf-edit-button')
+            botaoJogo = paginaDoJogoSopa.find('a', class_='item-url custom_link_button')
 
-            if ancora.get('href')[7:] in gameButton.get('onclick'):
+            if ancora.get('href')[7:] in botaoJogo.get('onclick'):
                 logProjeto(self, f'JOGO STEAM! + {ancora.get("href")}' + '\n')
 
-        self.page = requests.get('https://www.freesteamkeys.com/')
-        self.soup = BeautifulSoup(self.page.text, 'html.parser')
-        self.articles = self.soup.find(id='post-items')
+        self.pagina = requests.get('https://www.freesteamkeys.com/')
+        self.sopa = BeautifulSoup(self.pagina.text, 'html.parser')
+        self.articles = self.sopa.find(id='post-items')
 
-        for count, article in enumerate(self.articles, start=0):
+        for contador, article in enumerate(self.articles, start=0):
             divPostThumbnail = article.find(class_='post-thumbnail')
             try:
-                if article.get('id') == retrieveLastSeenFreeSteamKeys(self):
+                if article.get('id') == pegarUltimoVistoFreeSteamKeys(self):
                     break
 
                 if not divPostThumbnail.find('div', class_='expire_stamp'):
                     print(divPostThumbnail.find('a').get('href'))
-                    accessGamePage(divPostThumbnail.find('a').get('href'))
+                    acessarPaginaDoJogo(divPostThumbnail.find('a').get('href'))
             except: 
                 pass
 
-            if count == 1:
+            if contador == 1:
                 print('ISTO OCORREU')
-                updateLastSeenFreeSteamKeys(self, article.get('id'))
+                atualizarUltimoVistoFreeSteamKeys(self, article.get('id'))
 
 class SeleniumBusca:
     def __init__(self):
-        self.browser = Firefox()
+        if os.name == 'nt':
+            self.browser = Firefox(executable_path='./webdrivers/geckodriver.exe')
+        else:
+            self.browser = Firefox(executable_path='./webdrivers/geckodriver')
 
     def epicGamesStore(self):
         self.browser.get('https://www.epicgames.com/store/pt-BR/free-games')
@@ -74,10 +77,19 @@ class SeleniumBusca:
                 pass
             
             try:
+                def verificarJogoNaLista(self, jogo):
+                    gamesLista = open('games_list.txt')
+
+                    for linha in gamesLista:
+                        if jogo in linha:
+                            return True
+                    
                 ateQuando = self.browser.find_element_by_class_name('css-etnin6').text
                 nomeJogo = self.browser.title
-                jogosGratis.append([nomeJogo, self.browser.current_url, ateQuando])
-                print(nomeJogo + ' | ' + self.browser.current_url + ' | ' + 'Jogo Grátis!')
+
+                if not verificarJogoNaLista(self, self.browser.current_url):
+                    jogosGratis.append([nomeJogo, self.browser.current_url, ateQuando, 'Epic Games Store'])
+                    # print(nomeJogo + ' | ' + self.browser.current_url + ' | ' + 'Jogo Grátis!')
             except:
                 pass
             sleep(2)
@@ -85,12 +97,55 @@ class SeleniumBusca:
         return jogosGratis
     
     def fecharNavegador(self):
+        os.remove('geckodriver.log')
         self.browser.quit()
+
+class TwitterBotClass():
+    def __init__(self):
+        self.auth = tweepy.OAuthHandler(consumerKey, consumerSecret)
+        self.auth.set_access_token(accessKey, accessSecret)
+        self.api = tweepy.API(self.auth)
+
+    def criarTweet(self, dadosJogo):
+        def pegarData(self):
+            data = ''
+
+            for caractere in dadosJogo[2]:
+                if caractere.isnumeric() or caractere == '/' or caractere == ':':
+                    data += caractere
+            
+            return data
+
+        self.api.update_status(f'{dadosJogo[0]} está de graça na {dadosJogo[3]}!\nVálido até {pegarData(dadosJogo[2])[:-5]}.\n{dadosJogo[1]}')
+        print(f'{dadosJogo[0]} está de graça na {dadosJogo[3]}! {dadosJogo[1]}!\nVálido até {pegarData(dadosJogo[2])[:-5]}')
+
+    def mandarMensagem(self):
+        self.api.send_direct_message(minhaContaPrincipal, 'TESTE BEM SUCEDIDO')
+
+def esperar():
+    sleep(60 * 60 * 2)
+
+def salvarJogoGratis(jogo):
+    with open('games_list.txt', 'a') as gamesLista:
+        gamesLista.write(str(jogo) + '\n')
+        gamesLista.close()
 
 if __name__ == '__main__':
     while True:
-        print('BUSCANDO!')
+        # print('BUSCANDO!')
+        # procurarFreeSteamKeys = ProcurarFreeSteamKeys()
+        # print(procurarFreeSteamKeys)
         buscar = SeleniumBusca()
-        print(buscar.epicGamesStore())
+        jogos = buscar.epicGamesStore()
         buscar.fecharNavegador()
-        print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-') 
+        print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
+
+        twitterBot = TwitterBotClass()
+        twitterBot.mandarMensagem()
+                           
+        for jogo in jogos:
+            salvarJogoGratis(jogo)
+            twitterBot.criarTweet(jogo)
+
+        sleep(1000)
+        
