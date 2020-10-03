@@ -47,7 +47,9 @@ class SeleniumBusca:
                 nomeJogo = self.browser.title
 
                 if not verificarJogoNaLista(self, self.browser.current_url):
-                    jogosGratis.append([nomeJogo, self.browser.current_url, ateQuando, 'Epic Games Store', 'game'])
+                    dadosJogo = {'nome': nomeJogo, 'url': self.browser.current_url, 'validoAte': ateQuando, 'loja':'Epic Games Store', 'gameOuDlc': 'game'}
+                    jogosGratis.append(dadosJogo)
+                    salvarJogoGratis(str(dadosJogo))
                     # print(nomeJogo + ' | ' + self.browser.current_url + ' | ' + 'Jogo Grátis!')
             except:
                 pass
@@ -85,6 +87,8 @@ class SeleniumBusca:
                         linksJogosSteam.append(linkTratado)
                 except NoSuchElementException:
                     pass
+                except TypeError:
+                    pass
 
 
         def pegarUltimoVistoFreeSteamKeys(self):
@@ -105,7 +109,6 @@ class SeleniumBusca:
 
         for article in articles:
             itemId = article.get_attribute('id')
-            print(itemId)
 
             if itemId == pegarUltimoVistoFreeSteamKeys(self):
                 print('Nenhuma atualização no site.')
@@ -131,6 +134,47 @@ class SeleniumBusca:
                 
         return linksJogosSteam
 
+    def steamStore(self, links):
+        def coletarDadosJogo(self):
+            sleep(1)
+            try:
+                nomeJogo = self.browser.find_element_by_xpath('/html/body/div[1]/div[7]/div[4]/div[1]/div[3]/div[2]/div[2]/div/div[3]').text#'//div[@class="apphub_AppName"').text
+            except NoSuchElementException:
+                nomeJogo = 'Life is Strange 2 - Episode 1'
+    
+            urlJogo = self.browser.current_url
+
+            try:
+                self.browser.find_element_by_class_name("game_area_dlc_bubble")
+                gameOuDlc = 'dlc'
+                # gameNecessario = 
+            except:
+                gameOuDlc = 'game'
+
+            dadosJogo = {'nome':nomeJogo, 'url':urlJogo, 'validoAte':'Informação indisponível', 'loja':'steam', 'gameOuDlc':gameOuDlc}
+            salvarJogoGratis(str(dadosJogo))
+
+            return dadosJogo
+
+        jogosGratisSteam = list()
+
+        for link in links:
+            self.browser.get(link)
+            sleep(1)
+
+            try:
+                self.browser.find_element_by_xpath('//option[@value="1990"]').click()
+                tagsA = self.browser.find_elements_by_tag_name('a')
+                for a in tagsA:
+                    if 'acessar página' in a.text.lower():
+                        a.click()
+            except:
+                pass
+            
+            jogosGratisSteam.append(coletarDadosJogo(self))
+        
+        return jogosGratisSteam
+    
     def fecharNavegador(self):
         os.remove('geckodriver.log')
         self.browser.quit()
@@ -145,21 +189,25 @@ class TwitterBotClass():
         def pegarData(self):
             data = ''
 
-            for caractere in dadosJogo[2]:
+            for caractere in dadosJogo['validoAte']:
                 if caractere.isnumeric() or caractere == '/' or caractere == ':':
                     data += caractere
             
             return data
             
         def criarTexto(self):
-            hashtags = f'#freegames #freegame #{dadosJogo[0].replace(" ", "").lower()} '
-            if 'epic' in dadosJogo[3].lower(): hashtags += '#epic #epicgames #pcgaming'
-            string = f'🎮A NEW {dadosJogo[4].upper()} IS FOR FREE!🎮\n{dadosJogo[0]} está de graça na {dadosJogo[3]}!\nVálido até {pegarData(dadosJogo[2])[:-5]}.\n{hashtags}\n{dadosJogo[1]}'
+            hashtags = f'#freegames #freegame #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").lower()} '
+            if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''):
+                hashtags += '#epic #epicgames #pcgaming'
+            elif 'steam' in dadosJogo['loja']:
+                hashtags += '#steam #pcgaming'
+            string = f'🎮A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE!🎮\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].capitalize()}!\nValid until: {pegarData(dadosJogo["validoAte"])[:-5]}\n{hashtags}\n{dadosJogo["url"]}'
 
             return string
 
-        # self.api.update_status(f'{dadosJogo[0]} está de graça na {dadosJogo[3]}!\nVálido até {pegarData(dadosJogo[2])[:-5]}.\n{dadosJogo[1]}')
-        print(criarTexto(self))
+        textoTweet = criarTexto(self)
+        print(textoTweet)
+        self.api.update_status(textoTweet)
 
     def mandarMensagem(self):
         self.api.send_direct_message(minhaContaPrincipal, 'TESTE BEM SUCEDIDO')
@@ -174,10 +222,24 @@ def salvarJogoGratis(jogo):
 
 if __name__ == '__main__':
     while True:
-        print('BUSCANDO!')
+        print('BUSCANDO STEAM')
         buscar = SeleniumBusca()
-        # jogos = buscar.epicGamesStore()
-        # buscar.fecharNavegador()
+        jogosFreeSteamKeys = buscar.procurarFreeSteamKeys()
+        jogosSteam = buscar.steamStore(jogosFreeSteamKeys)
+        for jogo in jogosSteam:
+            print(jogo)
+            twitterBot = TwitterBotClass()
+            twitterBot.criarTweet(jogo)
+        print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
+        print('BUSCANDO EPIC')
+
+        jogosEpic = buscar.epicGamesStore()
+        for jogo in jogosEpic:
+            print(jogo)
+            twitterBot = TwitterBotClass()
+            twitterBot.criarTweet(jogo)
+        
+        buscar.fecharNavegador()
         # print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
 
         # twitterBot = TwitterBotClass()
@@ -187,5 +249,5 @@ if __name__ == '__main__':
         #     salvarJogoGratis(jogo)
         #     twitterBot.criarTweet(jogo)
 
-        sleep(10)
+        sleep(1000)
         
