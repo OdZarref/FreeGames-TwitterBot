@@ -171,8 +171,16 @@ class SeleniumBusca:
                             dia = caractere + textoData[posicao + 1]
                         else:
                             dia = '0' + caractere
+
                         break
-                return f'{ano}{numeroMes}{dia}'
+                
+                for posicao, caractere in enumerate(textoData):
+                    if caractere.isnumeric():
+                        if textoData[posicao + 1].isnumeric() and textoData[posicao + 2] == ':':
+                            hora = caractere + textoData[posicao + 1]
+
+
+                return f'{ano}{numeroMes}{dia}{hora}'
 
             sleep(1)
             try:
