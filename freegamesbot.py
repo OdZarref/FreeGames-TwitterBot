@@ -1,9 +1,7 @@
-import requests
 import tweepy
 import os
 from selenium.webdriver import Firefox
 from selenium.common.exceptions import NoSuchElementException
-from bs4 import BeautifulSoup
 from time import sleep
 from tokens import *
 
@@ -25,7 +23,7 @@ class SeleniumBusca:
 
         for jogo in jogos:
             self.browser.get(jogo)
-            sleep(2)
+            sleep(5)
 
             try:
                 botoes = self.browser.find_elements_by_tag_name('button')
@@ -68,9 +66,8 @@ class SeleniumBusca:
                     # print(nomeJogo + ' | ' + self.browser.current_url + ' | ' + 'Jogo Grátis!')
             except:
                 pass
-            sleep(2)
+            sleep(5)
 
-        print('-------------------------------------------------------')
         return jogosGratis
     
     def procurarFreeSteamKeys(self):
@@ -92,7 +89,7 @@ class SeleniumBusca:
                 return linkTratado
 
             self.browser.get(link)
-            sleep(2)
+            sleep(5)
             ancoras = self.browser.find_elements_by_tag_name('a')
 
             for ancora in ancoras:
@@ -117,7 +114,7 @@ class SeleniumBusca:
 
         print('\nBUSCANDO EM FREESTEAMKEYS')
         self.browser.get('https://www.freesteamkeys.com/')
-        sleep(2)
+        sleep(5)
         divPostItems = self.browser.find_element_by_id('post-items')
         articles = divPostItems.find_elements_by_tag_name('article')
         linksJogos = list()
@@ -182,7 +179,7 @@ class SeleniumBusca:
 
                 return f'{ano}{numeroMes}{dia}{hora}'
 
-            sleep(1)
+            sleep(5)
             try:
                 nomeJogo = self.browser.find_element_by_xpath('/html/body/div[1]/div[7]/div[4]/div[1]/div[3]/div[2]/div[2]/div/div[3]').text#'//div[@class="apphub_AppName"').text
             except NoSuchElementException:
@@ -210,7 +207,7 @@ class SeleniumBusca:
 
         for link in links:
             self.browser.get(link)
-            sleep(1)
+            sleep(5)
 
             try:
                 self.browser.find_element_by_xpath('//option[@value="1990"]').click()
@@ -235,36 +232,96 @@ class TwitterBotClass():
         self.auth.set_access_token(accessKey, accessSecret)
         self.api = tweepy.API(self.auth)
 
-    def criarTweet(self, dadosJogo):
-        def criarTexto(self):
-            def tratarData(self, data):
-                if not 'information unavailable' in data.lower(): dataTratada = f'{data[0:4]}-{data[4:6]}-{data[6:8]}'
-                else: dataTratada = data
-                return dataTratada
+    def postarTweet(self, dadosJogo, tipo):
+        def tratarData(self, data):
+            if not 'information unavailable' in data.lower(): dataTratada = f'{data[0:4]}-{data[4:6]}-{data[6:8]}'
+            else: dataTratada = data
+            return dataTratada
 
+        def criarTextoTweet(self):
             hashtags = f'#freegames #freegame #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").lower()} '
             if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''):
                 hashtags += '#epic #epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']:
                 hashtags += '#steam #pcgaming'
-            string = f'🎮A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE!🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].capitalize()}!\n\nValid until: {tratarData(self, dadosJogo["validoAte"])}\n\n{hashtags}\n{dadosJogo["url"]}'
+            string = f'🎮A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE!🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].capitalize()}!\n\nValid until: {tratarData(self, dadosJogo["validoAte"])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
 
             return string
 
-        textoTweet = criarTexto(self)
-        print(textoTweet)
-        self.api.update_status(textoTweet)
+        def criarTextoTweetLembrete(self):
+            hashtags = f'#freegames #freegame #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").lower()} '
+            if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''):
+                hashtags += '#epic #epicgames #pcgaming'
+            elif 'steam' in dadosJogo['loja']:
+                hashtags += '#steam #pcgaming'
+            string = f'⚠️ REMINDER ⚠️\n\nIts your last chance to take {dadosJogo["nome"]} for free on {dadosJogo["loja"].capitalize()}!\n\nValid until: {tratarData(self, dadosJogo["validoAte"])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
+
+            return string
+            
+        if tipo == 'PostarJogo':
+            textoTweet = criarTextoTweet(self)
+            print(textoTweet)
+        elif tipo == 'PostarLembrete':
+            textoTweet = criarTextoTweetLembrete(self)
+            print(textoTweet)
+
+        
+        # self.api.update_status(textoTweet)
 
     def mandarMensagem(self):
         self.api.send_direct_message(minhaContaPrincipal, 'TESTE BEM SUCEDIDO')
 
-def esperar():
-    sleep(60 * 60 * 2)
+def esperar(hora):
+    sleep(60 * 60 * hora)
 
 def salvarJogoGratis(jogo):
     with open('games_list.txt', 'a') as gamesLista:
         gamesLista.write(str(jogo) + '\n')
         gamesLista.close()
+
+def verificarJogosAindaValidosEPostarLembrete(twitterBot):
+    def verificarData(dataGame):
+        from datetime import datetime
+
+        data = datetime.now()
+        dataGameAno = int(dataGame[0:4])
+
+        if dataGameAno > data.year:
+            return True
+        elif dataGameAno == data.year:
+            dataGameMes = int(dataGame[4:6])
+            if dataGameMes > data.month:
+                return True
+            elif dataGameMes == data.month:
+                dataGameDia = int(dataGame[6:8])
+                if dataGameDia > data.day:
+                    return True
+                elif dataGameDia == data.day:
+                    dataGameHora = int(dataGame[8:10])
+                    if dataGameHora > data.hour:
+                        twitterBot.postarTweet(dicionarioJogo, 'PostarLembrete')
+                else:
+                    return False
+            else:
+                return False
+        else:
+            return False
+
+    from ast import literal_eval
+    
+    listaJogos = open('games_list.txt')
+    listaTemp = open('games_listTemp.txt', 'a')
+    # apagarListaJogos()
+    sleep(2)
+
+    for jogo in listaJogos:
+        dicionarioJogo = literal_eval(jogo.replace('\n', ''))
+        if dicionarioJogo['validoAte'].isnumeric():
+            if verificarData(dicionarioJogo['validoAte']):
+                listaTemp.write(jogo)
+    
+    os.remove('games_list.txt')
+    os.rename('./games_listTemp.txt', 'games_list.txt')
 
 if __name__ == '__main__':
     while True:
@@ -272,28 +329,25 @@ if __name__ == '__main__':
         jogosFreeSteamKeys = buscar.procurarFreeSteamKeys()
         jogosSteam = buscar.steamStore(jogosFreeSteamKeys)
         twitterBot = TwitterBotClass()
+        verificarJogosAindaValidosEPostarLembrete(twitterBot)
         for jogo in jogosSteam:
             print('JOGO STEAM')
             print(jogo)
-            print('\n------------------------------------------------------------\n')
 
             print('TWEET STEAM')
-            twitterBot.criarTweet(jogo)
-            print('\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n')
-        print('====================================================================================================\n')
+            twitterBot.postarTweet(jogo, 'PostarJogo')
+
+        print('\n===================================================================================================\n')
 
         jogosEpic = buscar.epicGamesStore()
         for jogo in jogosEpic:
             print('JOGO EPIC GAMES')
             print(jogo)
-            print('\n------------------------------------------------------------\n')
 
             print('TWEET EPIC')
-            twitterBot.criarTweet(jogo)
-            print('\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n')
+            twitterBot.postarTweet(jogo, 'PostarJogo')
         
         #twitterBot.mandarMensagem()
         buscar.fecharNavegador()
-        print('PROCURANDO NOVAMENTE EM 2 HORAS...')
-        sleep(10)
-    
+        print('PROCURANDO NOVAMENTE EM 1 HORA...')
+        esperar(1)
