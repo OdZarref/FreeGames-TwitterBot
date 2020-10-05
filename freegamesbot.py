@@ -188,16 +188,18 @@ class SeleniumBusca:
             urlJogo = self.browser.current_url
 
             try:
-                self.browser.find_element_by_class_name("game_area_dlc_bubble")
+                divGameAreaDLCBubble = self.browser.find_element_by_class_name("game_area_dlc_bubble")
                 gameOuDlc = 'dlc'
-                # gameNecessario = 
-            except: gameOuDlc = 'game'
+                gameNecessario = divGameAreaDLCBubble.find_element_by_tag_name('a').text
+            except:
+                gameOuDlc = 'game'
+                gameNecessario = 'nenhum'
 
             try: ateQuando = pegarData(self, self.browser.find_element_by_css_selector('p.game_purchase_discount_quantity ').text)
             except NoSuchElementException: ateQuando = 'Information Unavailable'
             except: print('ERRO AQUI')
 
-            dadosJogo = {'nome':nomeJogo, 'url':urlJogo, 'validoAte': ateQuando, 'loja':'steam', 'gameOuDlc':gameOuDlc}
+            dadosJogo = {'nome':nomeJogo, 'url':urlJogo, 'validoAte': ateQuando, 'loja':'steam', 'gameOuDlc':gameOuDlc, 'gameNecessario':gameNecessario}
             salvarJogoGratis(str(dadosJogo))
 
             return dadosJogo
@@ -244,7 +246,9 @@ class TwitterBotClass():
                 hashtags += '#epic #epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']:
                 hashtags += '#steam #pcgaming'
-            string = f'🎮 A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE! 🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].capitalize()}!\n\nValid until: {tratarData(self, dadosJogo["validoAte"])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
+            string = f'🎮 A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE! 🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].capitalize()}!\n\n'
+            if dadosJogo['gameOuDlc'] == 'dlc': string += f"it's necessary the base game {dadosJogo['gameNecessario']}.\n\n"
+            string += f'Valid until: {tratarData(self, dadosJogo["validoAte"])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
 
             return string
 
