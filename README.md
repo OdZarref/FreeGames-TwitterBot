@@ -12,7 +12,7 @@
         * [x] URL.
         * [x] Até quando o jogo ficará grátis.
         * [x] Diferenciar GAME e DLC.
-        * [ ] Caso seja DLC, pegar o nome do game necessário.
+        * [x] Caso seja DLC, pegar o nome do game necessário.
 
 * [x] Epic Games Store.
     * [x] Buscar os jogos que estão grátis.
@@ -24,6 +24,6 @@
 * [x] Twitter Bot
     * [x] Tweets
         * [x] Publicar Tweet ao encontrar um jogo grátis.
-        * [] Publicar lembrete ao ver que o tempo para pegar um jogo grátis está acabando.
+        * [x] Publicar lembrete ao ver que o tempo para pegar um jogo grátis está acabando.
 
 * [ ] Procurar Jogos no Reddit.
