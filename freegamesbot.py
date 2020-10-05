@@ -244,7 +244,7 @@ class TwitterBotClass():
                 hashtags += '#epic #epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']:
                 hashtags += '#steam #pcgaming'
-            string = f'🎮A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE!🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].capitalize()}!\n\nValid until: {tratarData(self, dadosJogo["validoAte"])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
+            string = f'🎮 A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE! 🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].capitalize()}!\n\nValid until: {tratarData(self, dadosJogo["validoAte"])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
 
             return string
 
@@ -254,7 +254,7 @@ class TwitterBotClass():
                 hashtags += '#epic #epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']:
                 hashtags += '#steam #pcgaming'
-            string = f'⚠️ REMINDER ⚠️\n\nIts your last chance to take {dadosJogo["nome"]} for free on {dadosJogo["loja"].capitalize()}!\n\nValid until: {tratarData(self, dadosJogo["validoAte"])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
+            string = f"⚠️ REMINDER ⚠️\n\nIt's your last chance to take {dadosJogo['nome']} for free on {dadosJogo['loja'].capitalize()}. It will expire in the next few hours!\n\nValid until: {tratarData(self, dadosJogo['validoAte'])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo['url']}"
 
             return string
             
@@ -299,7 +299,10 @@ def verificarJogosAindaValidosEPostarLembrete(twitterBot):
                 elif dataGameDia == data.day:
                     dataGameHora = int(dataGame[8:10])
                     if dataGameHora > data.hour:
-                        twitterBot.postarTweet(dicionarioJogo, 'PostarLembrete')
+                        if dataGameHora - data.hour<= 5:
+                            twitterBot.postarTweet(dicionarioJogo, 'PostarLembrete')
+                        else:
+                            return True
                 else:
                     return False
             else:
@@ -311,7 +314,6 @@ def verificarJogosAindaValidosEPostarLembrete(twitterBot):
     
     listaJogos = open('games_list.txt')
     listaTemp = open('games_listTemp.txt', 'a')
-    # apagarListaJogos()
     sleep(2)
 
     for jogo in listaJogos:
@@ -351,3 +353,5 @@ if __name__ == '__main__':
         buscar.fecharNavegador()
         print('PROCURANDO NOVAMENTE EM 1 HORA...')
         esperar(1)
+
+#estão comentadas as linhas quem postam o tweet e mandam a mensagem
