@@ -15,6 +15,7 @@ class SeleniumBusca:
     def epicGamesStore(self):
         print('BUSCANDO EM EPIC GAMES STORE\n')
         self.browser.get('https://www.epicgames.com/store/pt-BR/free-games')
+        sleep(5)
         elementos = self.browser.find_elements_by_xpath('//div[@data-component="CardGridDesktopBase"]')
         jogos = list()
         jogosGratis = list()
@@ -224,6 +225,58 @@ class SeleniumBusca:
 
         return jogosGratisSteam
     
+    def psnStore(self):
+        def buscarDadosJogoPSNStore(self, listaURLSJogos):
+            def verificarJogoNaListaPSN(self, urlJogo):
+                arquivo = open('games_list.txt')
+                for linha in arquivo:
+                    if urlJogo in linha:
+                        return True
+
+            def atualizarJogoGratisPSN(self, jogo):
+                arquivo = open('games_list.txt', 'a')
+                arquivo.write(str(jogo) + '\n')
+
+
+            def pegarAteQuando(self):
+                def tratarHora(self, strHora, periodo):
+                    if 'pm' in periodo:  return str(int(strHora) + 12)
+                    else: return strHora
+
+                def tratarAteQuando(self, ateQuando, hora):
+                    ateQuandoLista = ateQuando.split('/')
+                    ano = ateQuandoLista[2]
+                    mes = ateQuandoLista[1]
+                    dia = '0' + ateQuandoLista[0]
+                    data = ano + mes + dia + hora
+
+                    return data
+
+                ateQuandoTexto = self.browser.find_element_by_class_name('price-availability').text.split()
+                ateQuando = tratarAteQuando(self, ateQuandoTexto[-3], tratarHora(self, ateQuandoTexto[-2][:2], ateQuandoTexto[-1]))
+
+                return ateQuando
+
+            for url in listaURLSJogos:
+                self.browser.get(url)
+                sleep(10)
+                nome = self.browser.find_element_by_class_name('pdp__title').text
+                ateQuando = pegarAteQuando(self)
+                dadosJogo = {'nome': nome, 'url': url, 'validoAte': ateQuando, 'gameOuDlc': 'game', 'loja': 'psn'}
+                if not verificarJogoNaListaPSN(self, dadosJogo['url']):
+                    jogosGratisPSN.append(dadosJogo)
+                    atualizarJogoGratisPSN(self, dadosJogo)
+                
+        print('PROCURANDO JOGOS PSN')
+        jogosGratisPSN = list()
+        self.browser.get('https://store.playstation.com/pt-br/grid/STORE-MSF77008-PSPLUSFREEGAMES/1')
+        sleep(10)
+        jogosDivs = self.browser.find_elements_by_css_selector('div.grid-cell-row__container > div')
+        jogosPSN = list()
+        for jogoDiv in jogosDivs: jogosPSN.append(jogoDiv.find_element_by_tag_name('a').get_attribute('href'))
+        buscarDadosJogoPSNStore(self, jogosPSN)
+        return jogosGratisPSN
+
     def fecharNavegador(self):
         os.remove('geckodriver.log')
         self.browser.quit()
@@ -241,12 +294,14 @@ class TwitterBotClass():
             return dataTratada
 
         def criarTextoTweet(self):
-            hashtags = f'#freegames #freegame #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").lower()} '
+            hashtags = f'#freegames #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").replace("™", "").lower()} '
             if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''):
                 hashtags += '#epic #epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']:
                 hashtags += '#steam #pcgaming'
-            string = f'🎮 A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE! 🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].capitalize()}!\n\n'
+            elif 'psn' in dadosJogo['loja']:
+                hashtags += '#console #playstation #psn'
+            string = f'🎮 A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE! 🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].upper()}!\n\n'
             if dadosJogo['gameOuDlc'] == 'dlc': string += f"it's necessary the base game {dadosJogo['gameNecessario']}.\n\n"
             string += f'Valid until: {tratarData(self, dadosJogo["validoAte"])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
 
@@ -270,7 +325,7 @@ class TwitterBotClass():
             print(textoTweet)
 
         
-        # self.api.update_status(textoTweet)
+        self.api.update_status(textoTweet)
 
     def mandarMensagem(self):
         self.api.send_direct_message(minhaContaPrincipal, 'TESTE BEM SUCEDIDO')
@@ -326,22 +381,32 @@ def verificarJogosAindaValidosEPostarLembrete(twitterBot):
             if verificarData(dicionarioJogo['validoAte']):
                 listaTemp.write(jogo)
     
+    listaJogos.close()
+    listaTemp.close()
     os.remove('games_list.txt')
     os.rename('./games_listTemp.txt', 'games_list.txt')
 
 if __name__ == '__main__':
     while True:
         buscar = SeleniumBusca()
+
         jogosFreeSteamKeys = buscar.procurarFreeSteamKeys()
         jogosSteam = buscar.steamStore(jogosFreeSteamKeys)
         twitterBot = TwitterBotClass()
         verificarJogosAindaValidosEPostarLembrete(twitterBot)
+
         for jogo in jogosSteam:
             print('JOGO STEAM')
             print(jogo)
 
             print('TWEET STEAM')
             twitterBot.postarTweet(jogo, 'PostarJogo')
+
+        print('\n===================================================================================================\n')
+
+        jogosPSN = buscar.psnStore()
+        for jogoPSN in jogosPSN:
+            twitterBot.postarTweet(jogoPSN, 'PostarJogo')
 
         print('\n===================================================================================================\n')
 
@@ -353,7 +418,7 @@ if __name__ == '__main__':
             print('TWEET EPIC')
             twitterBot.postarTweet(jogo, 'PostarJogo')
         
-        #twitterBot.mandarMensagem()
+#         #twitterBot.mandarMensagem()
         buscar.fecharNavegador()
         print('PROCURANDO NOVAMENTE EM 1 HORA...')
         esperar(1)
