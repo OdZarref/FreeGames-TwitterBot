@@ -21,6 +21,13 @@
             * [x] URL.
             * [x] Até quando o jogo ficará grátis.
 
+* [x] Playstation Network Plus
+    * [x] Buscar jogos grátis do mês.
+        * [x] Nome.
+        * [x] URL.
+        * [x] Até quando o jogo ficará grátis.
+    * [ ] Utilizar data para procurar somente no dia em que um novo ficará gratuito.
+
 * [x] Twitter Bot
     * [x] Tweets
         * [x] Publicar Tweet ao encontrar um jogo grátis.
