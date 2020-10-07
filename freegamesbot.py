@@ -4,6 +4,7 @@ from selenium.webdriver import Firefox
 from selenium.common.exceptions import NoSuchElementException
 from time import sleep
 from tokens import *
+from datetime import datetime
 
 class SeleniumBusca:
     def __init__(self):
@@ -61,7 +62,7 @@ class SeleniumBusca:
                 nomeJogo = self.browser.title
 
                 if not verificarJogoNaLista(self, self.browser.current_url):
-                    dadosJogo = {'nome': nomeJogo, 'url': self.browser.current_url, 'validoAte': ateQuando, 'loja':'Epic Games Store', 'gameOuDlc': 'game'}
+                    dadosJogo = {'nome': nomeJogo, 'url': self.browser.current_url, 'validoAte': ateQuando, 'loja':'Epic Games', 'gameOuDlc': 'game'}
                     jogosGratis.append(dadosJogo)
                     salvarJogoGratis(str(dadosJogo))
                     # print(nomeJogo + ' | ' + self.browser.current_url + ' | ' + 'Jogo Grátis!')
@@ -154,8 +155,6 @@ class SeleniumBusca:
     def steamStore(self, links):
         def coletarDadosJogo(self):
             def pegarData(self, textoData):
-                from datetime import datetime
-
                 ano = datetime.now().year
                 listaAbreviacoesMeses = ['jan', 'fev', 'mar', 'abr', 'maio', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
@@ -244,11 +243,16 @@ class SeleniumBusca:
                     else: return strHora
 
                 def tratarAteQuando(self, ateQuando, hora):
+                    def salvarDataPSN(self, data):
+                        with open('psnData.txt', 'w') as arquivo:
+                            arquivo.write(data)
+
                     ateQuandoLista = ateQuando.split('/')
                     ano = ateQuandoLista[2]
                     mes = ateQuandoLista[1]
                     dia = '0' + ateQuandoLista[0]
                     data = ano + mes + dia + hora
+                    salvarDataPSN(self, data)
 
                     return data
 
@@ -295,25 +299,33 @@ class TwitterBotClass():
 
         def criarTextoTweet(self):
             hashtags = f'#freegames #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").replace("™", "").lower()} '
+            if 'epicgames' == dadosJogo['loja'].lower().replace(' ', ''):
+                hashtags += '#epic #epicgames #pcgaming'
+            elif 'steam' in dadosJogo['loja']:
+                hashtags += '#steam #pcgaming'
+            elif 'psn' in dadosJogo['loja']:
+                hashtags += '#console #playstation #psn'
+            string = f'🎮 A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE! 🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].upper()}.\n\n'
+            if dadosJogo['loja'].lower() == 'psn':
+                string += f"⚠️ Note: It's required PSN PLUS to grab this game for free.\n\n"
+            if dadosJogo['gameOuDlc'] == 'dlc': string += f"⚠️ Note: It's necessary the base game {dadosJogo['gameNecessario']}.\n\n"
+            string += f'Valid until: {tratarData(self, dadosJogo["validoAte"])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
+
+            return string
+
+        def criarTextoTweetLembrete(self):
+            hashtags = f'#freegames #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").replace("™", "").lower()} '
             if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''):
                 hashtags += '#epic #epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']:
                 hashtags += '#steam #pcgaming'
             elif 'psn' in dadosJogo['loja']:
                 hashtags += '#console #playstation #psn'
-            string = f'🎮 A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE! 🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].upper()}!\n\n'
-            if dadosJogo['gameOuDlc'] == 'dlc': string += f"it's necessary the base game {dadosJogo['gameNecessario']}.\n\n"
-            string += f'Valid until: {tratarData(self, dadosJogo["validoAte"])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
-
-            return string
-
-        def criarTextoTweetLembrete(self):
-            hashtags = f'#freegames #freegame #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").lower()} '
-            if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''):
-                hashtags += '#epic #epicgames #pcgaming'
-            elif 'steam' in dadosJogo['loja']:
-                hashtags += '#steam #pcgaming'
-            string = f"⚠️ REMINDER ⚠️\n\nIt's your last chance to take {dadosJogo['nome']} for free on {dadosJogo['loja'].capitalize()}. It will expire in the next few hours!\n\nValid until: {tratarData(self, dadosJogo['validoAte'])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo['url']}"
+            string = f"⚠️ REMINDER ⚠️\n\nIt's your last chance to take {dadosJogo['nome']} for free on {dadosJogo['loja'].upper()}. Will expire in the next few hours!\n\n"
+            if dadosJogo['loja'].lower() == 'psn':
+                string += f"⚠️ Note: It's required PSN PLUS to grab this game for free.\n\n"
+            if dadosJogo['gameOuDlc'] == 'dlc': string += f"⚠️ Note: It's necessary the base game {dadosJogo['gameNecessario']}.\n\n"
+            string += f"Valid until: {tratarData(self, dadosJogo['validoAte'])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo['url']}"
 
             return string
             
@@ -325,7 +337,7 @@ class TwitterBotClass():
             print(textoTweet)
 
         
-        self.api.update_status(textoTweet)
+        # self.api.update_status(textoTweet)
 
     def mandarMensagem(self):
         self.api.send_direct_message(minhaContaPrincipal, 'TESTE BEM SUCEDIDO')
@@ -340,8 +352,6 @@ def salvarJogoGratis(jogo):
 
 def verificarJogosAindaValidosEPostarLembrete(twitterBot):
     def verificarData(dataGame):
-        from datetime import datetime
-
         data = datetime.now()
         dataGameAno = int(dataGame[0:4])
 
@@ -403,13 +413,29 @@ if __name__ == '__main__':
             twitterBot.postarTweet(jogo, 'PostarJogo')
 
         print('\n===================================================================================================\n')
+        
+        dataPSN = open('psnData.txt').readline()
 
-        jogosPSN = buscar.psnStore()
-        for jogoPSN in jogosPSN:
-            twitterBot.postarTweet(jogoPSN, 'PostarJogo')
+        if dataPSN.isalpha():
+            jogosPSN = buscar.psnStore()
+            for jogoPSN in jogosPSN:
+                print('JOGO PSN')
+                print(jogoPSN)
 
-        print('\n===================================================================================================\n')
+                print('TWEET PSN')
+                twitterBot.postarTweet(jogoPSN, 'PostarJogo')
 
+        elif str(datetime.now().day) == dataPSN[-3] and datetime.now().strftime('%H') > dataPSN[-2:]:
+            jogosPSN = buscar.psnStore()
+            for jogoPSN in jogosPSN:
+                print('JOGO PSN')
+                print(jogoPSN)
+
+                print('TWEET PSN')
+                twitterBot.postarTweet(jogoPSN, 'PostarJogo')
+
+            print('\n===================================================================================================\n')
+            
         jogosEpic = buscar.epicGamesStore()
         for jogo in jogosEpic:
             print('JOGO EPIC GAMES')
