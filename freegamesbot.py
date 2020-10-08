@@ -62,7 +62,7 @@ class SeleniumBusca:
                 nomeJogo = self.browser.title
 
                 if not verificarJogoNaLista(self, self.browser.current_url):
-                    dadosJogo = {'nome': nomeJogo, 'url': self.browser.current_url, 'validoAte': ateQuando, 'loja':'Epic Games', 'gameOuDlc': 'game'}
+                    dadosJogo = {'nome': nomeJogo, 'url': self.browser.current_url, 'validoAte': ateQuando, 'loja':'Epic Games', 'gameOuDlc': 'game', 'lembretePostado': False}
                     jogosGratis.append(dadosJogo)
                     salvarJogoGratis(str(dadosJogo))
                     # print(nomeJogo + ' | ' + self.browser.current_url + ' | ' + 'Jogo Grátis!')
@@ -199,7 +199,7 @@ class SeleniumBusca:
             except NoSuchElementException: ateQuando = 'Information Unavailable'
             except: print('ERRO AQUI')
 
-            dadosJogo = {'nome':nomeJogo, 'url':urlJogo, 'validoAte': ateQuando, 'loja':'steam', 'gameOuDlc':gameOuDlc, 'gameNecessario':gameNecessario}
+            dadosJogo = {'nome':nomeJogo, 'url':urlJogo, 'validoAte': ateQuando, 'loja':'steam', 'gameOuDlc':gameOuDlc, 'gameNecessario':gameNecessario, 'lembretePostado': False}
             salvarJogoGratis(str(dadosJogo))
 
             return dadosJogo
@@ -266,7 +266,7 @@ class SeleniumBusca:
                 sleep(10)
                 nome = self.browser.find_element_by_class_name('pdp__title').text
                 ateQuando = pegarAteQuando(self)
-                dadosJogo = {'nome': nome, 'url': url, 'validoAte': ateQuando, 'gameOuDlc': 'game', 'loja': 'psn'}
+                dadosJogo = {'nome': nome, 'url': url, 'validoAte': ateQuando, 'gameOuDlc': 'game', 'loja': 'psn', 'lembretePostado': False}
                 if not verificarJogoNaListaPSN(self, dadosJogo['url']):
                     jogosGratisPSN.append(dadosJogo)
                     atualizarJogoGratisPSN(self, dadosJogo)
@@ -368,10 +368,14 @@ def verificarJogosAindaValidosEPostarLembrete(twitterBot):
                 elif dataGameDia == data.day:
                     dataGameHora = int(dataGame[8:10])
                     if dataGameHora > data.hour:
-                        if dataGameHora - data.hour<= 5:
-                            twitterBot.postarTweet(dicionarioJogo, 'PostarLembrete')
-                        else:
-                            return True
+                        if dataGameHora - data.hour <= 5:
+                            try:
+                                if not dicionarioJogo['lembretePostado']:
+                                    twitterBot.postarTweet(dicionarioJogo, 'PostarLembrete')
+                                    dicionarioJogo['lembretePostado'] = True
+                            except KeyError:
+                                print('KeyError')
+                    return True
                 else:
                     return False
             else:
@@ -389,7 +393,7 @@ def verificarJogosAindaValidosEPostarLembrete(twitterBot):
         dicionarioJogo = literal_eval(jogo.replace('\n', ''))
         if dicionarioJogo['validoAte'].isnumeric():
             if verificarData(dicionarioJogo['validoAte']):
-                listaTemp.write(jogo)
+                listaTemp.write(str(dicionarioJogo) + '\n')
     
     listaJogos.close()
     listaTemp.close()
