@@ -7,11 +7,20 @@ from tokens import *
 from datetime import datetime
 
 class SeleniumBusca:
+    """Classe responsável pela busca através do Selenium. Contem funções para busca em Epic Games Store, Steam e PSN.
+    """
     def __init__(self):
+        """Define os atributos da classe. Sendo este o objeto do navegador.
+        """
         if os.name == 'nt': self.browser = Firefox(executable_path='./webdrivers/geckodriver.exe')
         else: self.browser = Firefox(executable_path='./webdrivers/geckodriver')
 
     def epicGamesStore(self):
+        """Busca os jogos que estão gratuitos na Epic Games Store.
+
+        Returns:
+            list: Retorna uma lista contendo os jogos que estão gratuitos por tempo limitado.
+        """
         print('BUSCANDO EM EPIC GAMES STORE\n')
         self.browser.get('https://www.epicgames.com/store/pt-BR/free-games')
         sleep(5)
@@ -34,11 +43,27 @@ class SeleniumBusca:
             
             try:
                 def verificarJogoNaLista(self, jogo):
+                    """Verifica que o jogo do momento está na lista de jogos grátis já vistos.
+
+                    Args:
+                        jogo (str): A URL do jogo para verificação.
+
+                    Returns:
+                        boolean: Retorna "True" se o jogo já estiver na lista.
+                    """
                     gamesLista = open('games_list.txt')
                     for linha in gamesLista:
                         if jogo in linha: return True
                 
                 def pegarData(self, dataNaoTratada):
+                    """Pega a frase onde está a data e seleciona apenas os números e os organiza.
+
+                    Args:
+                        dataNaoTratada (str): A frase que contem a data.
+
+                    Returns:
+                        str: Retorna apenas os números e já organizados.
+                    """
                     dataTratada = ''
                     for caractere in dataNaoTratada:
                         if caractere.isnumeric(): dataTratada += caractere
@@ -63,15 +88,38 @@ class SeleniumBusca:
         return jogosGratis
     
     def procurarFreeSteamKeys(self):
+        """Procura os jogos que estão gratuitos para Steam em "freesteamkeys.com".
+        """
         def verificarExpirado(self, divPostThumbnail):
+            """Verifica se o jogo do post atual está expirado ou não.
+
+            Args:
+                divPostThumbnail (webelement Selenium): Elemento que contem informações importantes sobre a postagem.
+
+            Returns:
+                boolean: Retorna "True" caso tenha expirado e "False" caso não.
+            """
             try:
                 divPostThumbnail.find_element_by_class_name('expire_stamp')
                 return True
             except NoSuchElementException: return False
             except: print('Ocorreu uma exceção em "verificarExpirado()"')
                 
-        def acessarAnalizarPaginaDoJogo(self, link, linksJogos):
+        def acessarAnalizarPostagem(self, link):
+            """Acessa a página da postagem e verifica se o jogo é diretamente gratuito no Steam.
+
+            Args:
+                link (str): O link da postagem.
+            """
             def tratarLink(self, link):
+                """A âncora que contem o link Steam dispara um evento javascript que dificulta em pegar o link Steam. Esta função irá remover as partes referentes a este evento.
+
+                Args:
+                    link (str): Link que a âncora contem.
+
+                Returns:
+                    str: O link Steam corretamente tratado.
+                """
                 linkTratado = ''
                 for contador, caractere in enumerate(link):
                     if contador > 23:
@@ -91,14 +139,24 @@ class SeleniumBusca:
                         linksJogosSteam.append(linkTratado)
                 except NoSuchElementException: pass
                 except TypeError: pass
-                except: print('Ocorreu uma exceção em "acessarAnalizarPaginaDoJogo()"')
+                except: print('Ocorreu uma exceção em "acessarAnalizarPostagem()"')
 
 
         def pegarUltimoVistoFreeSteamKeys(self):
+            """Pegará o ID da última postagem vista pelo programa.
+
+            Returns:
+                str: O ID da última postagem.
+            """
             with open('ultimovisto_freesteamkeys.txt') as arquivo:
                 return arquivo.read()
         
         def atualizarUltimoVistoFreeSteamKeys(self, ultimoVisto):
+            """Irá atualizar o ID do último visto no arquivo txt que contem esta informação pelo ID da última postagem vista.
+
+            Args:
+                ultimoVisto (str): O ID da última postagem vista.
+            """
             with open('ultimovisto_freesteamkeys.txt', 'w') as arquivo:
                 arquivo.write(ultimoVisto)
 
@@ -131,15 +189,33 @@ class SeleniumBusca:
 
         for link in linksJogos:
             sleep(1)
-            acessarAnalizarPaginaDoJogo(self, link, linksJogos)
+            acessarAnalizarPostagem(self, link)
             try: atualizarUltimoVistoFreeSteamKeys(self, ultimoVistoId)
             except UnboundLocalError: pass
             except: print('Ocorreu uma exceção no último try de "procurarFreeSteamKeys"')
         return linksJogosSteam
 
     def steamStore(self, links):
+        """Acessará a página de cada jogo no Steam.
+
+        Args:
+            links (list): Lista com os jogos ou jogo gratuito.
+        returns:
+            jogosGratisSteam (list): Lista com os dicionários dos jogos.
+
+        """
         def coletarDadosJogo(self):
+            """Pegará as seguintes informações: link do jogo, nome do jogo, se é DLC ou não, o jogo base caso seja DLC, o nome da loja e até quando ficará gratuito. Colocará estas informações em um dicionário e irá inserir este dicionário em uma lista
+            """
             def pegarData(self, textoData):
+                """Pegará a frase que contem a data até quando o jogo ficará grátis e irá tratá-la. Deixando apenas os caracteres numéricos.
+
+                Args:
+                    textoData (str): A frase que contem a data.
+
+                Returns:
+                    str: A data tratada.
+                """
                 ano = datetime.now().year
                 listaAbreviacoesMeses = ['jan', 'fev', 'mar', 'abr', 'maio', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
@@ -199,23 +275,65 @@ class SeleniumBusca:
         return jogosGratisSteam
     
     def psnStore(self):
+        """Procurará os jogos grátis na PSN.
+
+        returns:
+            list: Lista com os dicionários dos jogos gratuitos.
+        """
         def buscarDadosJogoPSNStore(self, listaURLSJogos):
             def verificarJogoNaListaPSN(self, urlJogo):
+                """Verificará se o jogo já está na lista de jogos grátis.
+
+                Args:
+                    urlJogo (str): A URL do jogo.
+
+                Returns:
+                    boolean: Retorna "True" se o jogo já estiver na lista.
+                """
                 arquivo = open('games_list.txt')
                 for linha in arquivo:
                     if urlJogo in linha: return True
 
             def atualizarJogoGratisPSN(self, jogo):
+                """Adiciona o jogo na lista de jogos grátis do programa.
+
+                Args:
+                    jogo (dict): Dicionário com as informações do jogo.
+                """
                 arquivo = open('games_list.txt', 'a')
                 arquivo.write(str(jogo) + '\n')
 
             def pegarAteQuando(self):
+                """Pegará a data de até quando o jogo estará gratuito.
+                """
                 def tratarHora(self, strHora, periodo):
+                    """Transformará o formato de hora em 24h.
+
+                    Args:
+                        strHora (str): Texto com a hora de até quando o jogo ficará gratuito.
+                        periodo (str): Se é PM ou AM.
+
+                    Returns:
+                        [type]: [description]
+                    """
                     if 'pm' in periodo:  return str(int(strHora) + 12)
                     else: return strHora
 
                 def tratarAteQuando(self, ateQuando, hora):
+                    """Pega a data de até quando o jogo ficará gratuito e a trata e junta com a hora. Organizando em aaaa/mm/dd/hh.
+
+                    Args:
+                        ateQuando (str): Data não tratada, contem '/'.
+                        hora (str): A hora de até quando o jogo ficará gratuito.
+                    returns:
+                        (str): A data junto com a hora em formato aaaa/mm/dd/hh
+                    """
                     def salvarDataPSN(self, data):
+                        """Salva em um arquivo txt quando novos jogos ficarão gratuitos na PSN.
+
+                        Args:
+                            data (str): A data de quando os jogos atuais deixarão de ser gratuitos.
+                        """
                         with open('psnData.txt', 'w') as arquivo: arquivo.write(data)
 
                     ateQuandoLista = ateQuando.split('/')
@@ -251,22 +369,47 @@ class SeleniumBusca:
         return jogosGratisPSN
 
     def fecharNavegador(self):
-        os.remove('geckodriver.log')
+        """Fecha o navegador e apaga o arquivo de log gerado por ele.
+        """
         self.browser.quit()
+        os.remove('geckodriver.log')
 
 class TwitterBotClass():
+    """Classe que contem os métodos referentes ao twitter.
+    """
     def __init__(self):
+        """Faz a validação do bot.
+        """
         self.auth = tweepy.OAuthHandler(consumerKey, consumerSecret)
         self.auth.set_access_token(accessKey, accessSecret)
         self.api = tweepy.API(self.auth)
 
     def postarTweet(self, dadosJogo, tipo):
+        """Posta um tweet com o texto contido na variável "string".
+
+        Args:
+            dadosJogo (dict): O jogo com os seus dados.
+            tipo (str): Diz se o tweet será um novo jogo gratuito ou um lembrete.
+        """
         def tratarData(self, data):
+            """Irá remover a hora da data.
+
+            Args:
+                data (str): A data com a hora.
+
+            Returns:
+                str: A data sem a hora.
+            """
             if not 'information unavailable' in data.lower(): dataTratada = f'{data[0:4]}-{data[4:6]}-{data[6:8]}'
             else: dataTratada = data
             return dataTratada
 
         def criarTextoTweet(self):
+            """Criará o texto para postar um novo jogo gratuito.
+
+            Returns:
+                str: O texto a ser publicado.
+            """
             hashtags = f'#freegames #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").replace("™", "").lower()} '
             if 'epicgames' == dadosJogo['loja'].lower().replace(' ', ''): hashtags += '#epic #epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']: hashtags += '#steam #pcgaming'
@@ -278,6 +421,11 @@ class TwitterBotClass():
             return string
 
         def criarTextoTweetLembrete(self):
+            """Cria o texto para o lembrete.
+
+            Returns:
+                str: O texto a ser publicado.
+            """
             hashtags = f'#freegames #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").replace("™", "").lower()} '
             if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''): hashtags += '#epic #epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']: hashtags += '#steam #pcgaming'
@@ -297,18 +445,43 @@ class TwitterBotClass():
         # self.api.update_status(textoTweet)
 
     def mandarMensagem(self):
+        """Manda uma mensagem na minha conta principal, mostrando que o bot continua funcionando.
+        """
         self.api.send_direct_message(minhaContaPrincipal, 'TESTE BEM SUCEDIDO')
 
 def esperar(hora):
+    """Função de espera.
+
+    Args:
+        hora (int): Quantas horas a função deve esperar.
+    """
     sleep(60 * 60 * hora)
 
 def salvarJogoGratis(jogo):
+    """Adiciona o dicionário do jogo a lista de jogos gratuitos do programa.
+
+    Args:
+        jogo (str): Os dados do jogo.
+    """
     with open('games_list.txt', 'a') as gamesLista:
         gamesLista.write(str(jogo) + '\n')
         gamesLista.close()
 
-def verificarJogosAindaValidosEPostarLembrete(twitterBot):
-    def verificarData(dataGame):
+def verificarJogosAindaValidos(twitterBot):
+    """Abre a lista de jogos grátis do programa, e analisa os jogos. Os que já são mais válidos, são excluídos da lista.
+
+    Args:[ty
+        twitterBot (class): Instância de TwitterBotClass
+    """
+    def verificarDataEpostarLembrete(dataGame):
+        """Verifica se a data do jogo é maior que a data do momento. E posta um lembrete se a data do momento estiver próxima.
+
+        Args:
+            dataGame (str): A data do jogo
+
+        Returns:
+            boolean: "True" se ainda for válido e "False" se não.
+        """
         data = datetime.now()
         dataGameAno = int(dataGame[0:4])
 
@@ -349,7 +522,7 @@ def verificarJogosAindaValidosEPostarLembrete(twitterBot):
     for jogo in listaJogos:
         dicionarioJogo = literal_eval(jogo.replace('\n', ''))
         if dicionarioJogo['validoAte'].isnumeric():
-            if verificarData(dicionarioJogo['validoAte']): listaTemp.write(str(dicionarioJogo) + '\n')
+            if verificarDataEpostarLembrete(dicionarioJogo['validoAte']): listaTemp.write(str(dicionarioJogo) + '\n')
     
     listaJogos.close()
     listaTemp.close()
@@ -362,7 +535,7 @@ if __name__ == '__main__':
         jogosFreeSteamKeys = buscar.procurarFreeSteamKeys()
         jogosSteam = buscar.steamStore(jogosFreeSteamKeys)
         twitterBot = TwitterBotClass()
-        verificarJogosAindaValidosEPostarLembrete(twitterBot)
+        verificarJogosAindaValidos(twitterBot)
         for jogo in jogosSteam:
             print('JOGO STEAM\n', jogo)
             print('TWEET STEAM')
