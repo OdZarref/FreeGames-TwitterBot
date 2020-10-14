@@ -19,7 +19,7 @@ class SeleniumBusca:
         """Busca os jogos que estão gratuitos na Epic Games Store.
 
         Returns:
-            list: Retorna uma lista contendo os jogos que estão gratuitos por tempo limitado.
+            list: Uma lista contendo os jogos que estão gratuitos por tempo limitado.
         """
         print('BUSCANDO EM EPIC GAMES STORE\n')
         self.browser.get('https://www.epicgames.com/store/pt-BR/free-games')
@@ -49,7 +49,7 @@ class SeleniumBusca:
                         jogo (str): A URL do jogo para verificação.
 
                     Returns:
-                        boolean: Retorna "True" se o jogo já estiver na lista.
+                        boolean: "True" se o jogo já estiver na lista.
                     """
                     gamesLista = open('games_list.txt')
                     for linha in gamesLista:
@@ -62,7 +62,7 @@ class SeleniumBusca:
                         dataNaoTratada (str): A frase que contem a data.
 
                     Returns:
-                        str: Retorna apenas os números e já organizados.
+                        str: Apenas os números e já organizados.
                     """
                     dataTratada = ''
                     for caractere in dataNaoTratada:
@@ -97,7 +97,7 @@ class SeleniumBusca:
                 divPostThumbnail (webelement Selenium): Elemento que contem informações importantes sobre a postagem.
 
             Returns:
-                boolean: Retorna "True" caso tenha expirado e "False" caso não.
+                boolean: "True" caso tenha expirado e "False" caso não.
             """
             try:
                 divPostThumbnail.find_element_by_class_name('expire_stamp')
@@ -288,7 +288,7 @@ class SeleniumBusca:
                     urlJogo (str): A URL do jogo.
 
                 Returns:
-                    boolean: Retorna "True" se o jogo já estiver na lista.
+                    boolean: "True" se o jogo já estiver na lista.
                 """
                 arquivo = open('games_list.txt')
                 for linha in arquivo:
@@ -314,7 +314,7 @@ class SeleniumBusca:
                         periodo (str): Se é PM ou AM.
 
                     Returns:
-                        [type]: [description]
+                        str: A hora em formade de 24h.
                     """
                     if 'pm' in periodo:  return str(int(strHora) + 12)
                     else: return strHora
@@ -470,7 +470,7 @@ def salvarJogoGratis(jogo):
 def verificarJogosAindaValidos(twitterBot):
     """Abre a lista de jogos grátis do programa, e analisa os jogos. Os que já são mais válidos, são excluídos da lista.
 
-    Args:[ty
+    Args:
         twitterBot (class): Instância de TwitterBotClass
     """
     def verificarDataEpostarLembrete(dataGame):
@@ -567,7 +567,7 @@ if __name__ == '__main__':
             print('TWEET EPIC')
             twitterBot.postarTweet(jogo, 'PostarJogo')
         
-#         #twitterBot.mandarMensagem()
+        # twitterBot.mandarMensagem()
         buscar.fecharNavegador()
         print('PROCURANDO NOVAMENTE EM 1 HORA...')
         esperar(1)
