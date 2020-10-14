@@ -26,7 +26,7 @@
         * [x] Nome.
         * [x] URL.
         * [x] Até quando o jogo ficará grátis.
-    * [ ] Utilizar data para procurar somente no dia em que um novo ficará gratuito.
+    * [x] Utilizar data para procurar somente no dia em que um novo ficará gratuito.
 
 * [x] Twitter Bot
     * [x] Tweets
