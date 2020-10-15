@@ -410,10 +410,10 @@ class TwitterBotClass():
             Returns:
                 str: O texto a ser publicado.
             """
-            hashtags = f'#freegames #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").replace("™", "").lower()} '
-            if 'epicgames' == dadosJogo['loja'].lower().replace(' ', ''): hashtags += '#epic #epicgames #pcgaming'
+            hashtags = f'#freegames' + ' '
+            if 'epicgames' == dadosJogo['loja'].lower().replace(' ', ''): hashtags += '#epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']: hashtags += '#steam #pcgaming'
-            elif 'psn' in dadosJogo['loja']: hashtags += '#console #playstation #psn'
+            elif 'psn' in dadosJogo['loja']: hashtags += '#playstation4 #psn'
             string = f'🎮 A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE! 🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].upper()}.\n\n'
             if dadosJogo['loja'].lower() == 'psn': string += f"⚠️ Note: It's required PSN PLUS to grab this game for free.\n\n"
             if dadosJogo['gameOuDlc'] == 'dlc': string += f"⚠️ Note: It's necessary the base game {dadosJogo['gameNecessario']}.\n\n"
@@ -426,10 +426,10 @@ class TwitterBotClass():
             Returns:
                 str: O texto a ser publicado.
             """
-            hashtags = f'#freegames #{dadosJogo["nome"].replace(" ", "").replace("-", "").replace(":", "").replace("™", "").lower()} '
-            if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''): hashtags += '#epic #epicgames #pcgaming'
+            hashtags = f'#freegames' + ' '
+            if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''): hashtags += '#epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']: hashtags += '#steam #pcgaming'
-            elif 'psn' in dadosJogo['loja']: hashtags += '#console #playstation #psn'
+            elif 'psn' in dadosJogo['loja']: hashtags += '#playstation4 #psn'
             string = f"⚠️ REMINDER ⚠️\n\nIt's your last chance to take {dadosJogo['nome']} for free on {dadosJogo['loja'].upper()}. Will expire in the next few hours!\n\n"
             if dadosJogo['loja'].lower() == 'psn': string += f"⚠️ Note: It's required PSN PLUS to grab this game for free.\n\n"
             if dadosJogo['gameOuDlc'] == 'dlc': string += f"⚠️ Note: It's necessary the base game {dadosJogo['gameNecessario']}.\n\n"
