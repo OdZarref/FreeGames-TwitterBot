@@ -76,7 +76,8 @@ class SeleniumBusca:
                     return data
                     
                 ateQuando = pegarData(self, self.browser.find_element_by_class_name('css-etnin6').text)
-                nomeJogo = self.browser.title
+                elementosNomeJogo = self.browser.find_elements_by_xpath('//span[@data-component="Message"]')
+                nomeJogo = elementosNomeJogo[1].text
 
                 if not verificarJogoNaLista(self, self.browser.current_url):
                     dadosJogo = {'nome': nomeJogo, 'url': self.browser.current_url, 'validoAte': ateQuando, 'loja':'Epic Games', 'gameOuDlc': 'game', 'lembretePostado': False}
