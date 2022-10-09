@@ -21,71 +21,95 @@ class SeleniumBusca:
         Returns:
             list: Uma lista contendo os jogos que estão gratuitos por tempo limitado.
         """
+        def tratarData(string):
+            abreviacoesMeses = ['jan.', 'fev.', 'mar.', 'abr.', 'maio.', 'jun.', 'jul.', 'ago.', 'set.', 'out.', 'nov.', 'dez.']
+            palavrasString = string.split()
+            contadorPalavrasNumericas = 0
+
+            for palavra in palavrasString:
+                if palavra.isnumeric() and contadorPalavrasNumericas == 0:
+                    contadorPalavrasNumericas += 1
+                    dia = palavra
+
+                    if len(dia) < 2: dia = '0' + dia
+                for abreviaturaMes in abreviacoesMeses:
+                    if palavra == abreviaturaMes:
+                        mes = abreviacoesMeses.index(palavra) + 1
+                        break
+
+            if mes == 'dez.' and dia >= 25: ano = datetime.now().year + 1
+            else: ano = datetime.now().year
+
+
+            return f'{ano}{mes}{dia}' + '12'
+
+        def verificarJogoNaLista(jogo):
+            """Verifica que o jogo do momento está na lista de jogos grátis já vistos.
+
+            Args:
+                jogo (str): O nome do jogo para verificação.
+
+            Returns:
+                boolean: "True" se o jogo já estiver na lista.
+            """
+            gamesLista = open('games_list.txt')
+            for linha in gamesLista:
+                if jogo in linha: return True
+
+        def salvarJogoNaLista(jogo):
+            with open('games_list.txt', 'a') as gamesLista:
+                gamesLista.write(str(jogo) + '\n')
+
+
         print('BUSCANDO EM EPIC GAMES STORE\n')
         self.browser.get('https://www.epicgames.com/store/pt-BR/free-games')
         sleep(5)
-        elementos = self.browser.find_elements_by_xpath('//div[@data-component="CardGridDesktopBase"]')
+        elementos = self.browser.find_elements_by_class_name('css-1ukp34s')
         jogos = list()
         jogosGratis = list()
 
-        for elemento in elementos: jogos.append(elemento.find_element_by_tag_name('a').get_attribute('href'))
-
-        for jogo in jogos:
-            self.browser.get(jogo)
-            sleep(5)
+        for elemento in elementos:
+            jogoURL = elemento.find_element_by_tag_name('a').get_attribute('href')
+            nomeJogo = elemento.text.split('\n')[1]
+            dataEpic = tratarData(elemento.text.split('\n')[-1])
 
             try:
-                botoes = self.browser.find_elements_by_tag_name('button')
-                for botao in botoes:
-                    if 'continuar' in botao.text.lower(): botao.click()
+                if elemento.find_element_by_class_name('css-11xvn05') and not verificarJogoNaLista(nomeJogo):
+                    jogosGratis.append({'nome': nomeJogo, 'url': jogoURL, 'validoAte': dataEpic, 'loja': 'Epic Games', 'gameOuDlc': 'game', 'lembretePostado': False})
+                    salvarJogoNaLista({'nome': nomeJogo, 'url': jogoURL, 'validoAte': dataEpic, 'loja': 'Epic Games', 'gameOuDlc': 'game', 'lembretePostado': False})
+
             except NoSuchElementException: pass
-            except: print('Ocorreu uma exceção no primeiro try de "epicGameStore()"')
-            
-            try:
-                def verificarJogoNaLista(self, jogo):
-                    """Verifica que o jogo do momento está na lista de jogos grátis já vistos.
+            except: print('erro')
 
-                    Args:
-                        jogo (str): A URL do jogo para verificação.
+        # for jogo in jogos:
+        #     self.browser.get(jogo)
+        #     sleep(5)
 
-                    Returns:
-                        boolean: "True" se o jogo já estiver na lista.
-                    """
-                    gamesLista = open('games_list.txt')
-                    for linha in gamesLista:
-                        if jogo in linha: return True
-                
-                def pegarData(self, dataNaoTratada):
-                    """Pega a frase onde está a data e seleciona apenas os números e os organiza.
+        #     try:
+        #         def pegarData(self, dataNaoTratada):
+        #             """Pega a frase onde está a data e seleciona apenas os números e os organiza.
 
-                    Args:
-                        dataNaoTratada (str): A frase que contem a data.
+        #             Args:
+        #                 dataNaoTratada (str): A frase que contem a data.
 
-                    Returns:
-                        str: Apenas os números e já organizados.
-                    """
-                    dataTratada = ''
-                    for caractere in dataNaoTratada:
-                        if caractere.isnumeric(): dataTratada += caractere
+        #             Returns:
+        #                 str: Apenas os números e já organizados.
+        #             """
+        #             dataTratada = ''
+        #             for caractere in dataNaoTratada:
+        #                 if caractere.isnumeric(): dataTratada += caractere
                     
-                    dia = dataTratada[0:2]
-                    mes = dataTratada[2:4]
-                    ano = dataTratada[4:8]
-                    hora = dataTratada[8:10]
-                    data = f'{ano}{mes}{dia}{hora}'
-                    return data
+        #             dia = dataTratada[0:2]
+        #             mes = dataTratada[2:4]
+        #             ano = dataTratada[4:8]
+        #             hora = dataTratada[8:10]
+        #             data = f'{ano}{mes}{dia}{hora}'
+        #             return data
                     
-                ateQuando = pegarData(self, self.browser.find_element_by_class_name('css-etnin6').text)
-                elementosNomeJogo = self.browser.find_elements_by_xpath('//span[@data-component="Message"]')
-                nomeJogo = elementosNomeJogo[1].text
+        #         ateQuando = pegarData(self, self.browser.find_element_by_class_name('css-etnin6').text)
+        #         elementosNomeJogo = self.browser.find_elements_by_xpath('//span[@data-component="Message"]')
+        #         nomeJogo = elementosNomeJogo[1].text
 
-                if not verificarJogoNaLista(self, self.browser.current_url):
-                    dadosJogo = {'nome': nomeJogo, 'url': self.browser.current_url, 'validoAte': ateQuando, 'loja':'Epic Games', 'gameOuDlc': 'game', 'lembretePostado': False}
-                    jogosGratis.append(dadosJogo)
-                    salvarJogoGratis(str(dadosJogo))
-            except NoSuchElementException: pass
-            except: print('Ocorreu uma exceção no segundo try de "epicGameStore()"')
-            sleep(5)
         return jogosGratis
     
     def procurarFreeSteamKeys(self):
@@ -238,7 +262,7 @@ class SeleniumBusca:
                 return f'{ano}{numeroMes}{dia}{hora}'
 
             sleep(5)
-            try: nomeJogo = self.browser.find_element_by_xpath('/html/body/div[1]/div[7]/div[4]/div[1]/div[3]/div[2]/div[2]/div/div[3]').text
+            try: nomeJogo = self.browser.find_element_by_id('appHubAppName').text
             except NoSuchElementException: nomeJogo = 'Name Not Found'
     
             urlJogo = self.browser.current_url
@@ -375,7 +399,7 @@ class SeleniumBusca:
         """Fecha o navegador e apaga o arquivo de log gerado por ele.
         """
         self.browser.quit()
-        os.remove('geckodriver.log')
+        # os.remove('geckodriver.log')
 
 class TwitterBotClass():
     """Classe que contem os métodos referentes ao twitter.
@@ -433,7 +457,7 @@ class TwitterBotClass():
             if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''): hashtags += '#epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']: hashtags += '#steam #pcgaming'
             elif 'psn' in dadosJogo['loja']: hashtags += '#playstation4 #psn'
-            string = f"⚠️ REMINDER ⚠️\n\nIt's your last chancte to grab {dadosJogo['nome']} for free on {dadosJogo['loja'].upper()}. Will expire in the next few hours!\n\n"
+            string = f"⚠️ REMINDER ⚠️\n\nIt's your last chance to grab {dadosJogo['nome']} for free on {dadosJogo['loja'].upper()}. Will expire in the next few hours!\n\n"
             if dadosJogo['loja'].lower() == 'psn': string += f"⚠️ Note: It's required PSN PLUS to grab this game for free.\n\n"
             if dadosJogo['gameOuDlc'] == 'dlc': string += f"⚠️ Note: It's necessary the base game {dadosJogo['gameNecessario']}.\n\n"
             string += f"Valid until: {tratarData(self, dadosJogo['validoAte'])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo['url']}"
@@ -546,27 +570,27 @@ if __name__ == '__main__':
 
         print('\n===================================================================================================\n')
         
-        try:
-            dataPSN = open('psnData.txt').readline()
-        except FileNotFoundError:
-            open('psnData.txt', 'w').write('######')
-            dataPSN = open('psnData.txt').readline()
+        # try:
+        #     dataPSN = open('psnData.txt').readline()
+        # except FileNotFoundError:
+        #     open('psnData.txt', 'w').write('######')
+        #     dataPSN = open('psnData.txt').readline()
 
-        if dataPSN.isalpha():
-            jogosPSN = buscar.psnStore()
-            for jogoPSN in jogosPSN:
-                print('JOGO PSN\n', jogoPSN)
-                print('TWEET PSN')
-                twitterBot.postarTweet(jogoPSN, 'PostarJogo')
+        # if dataPSN.isalpha():
+        #     jogosPSN = buscar.psnStore()
+        #     for jogoPSN in jogosPSN:
+        #         print('JOGO PSN\n', jogoPSN)
+        #         print('TWEET PSN')
+        #         twitterBot.postarTweet(jogoPSN, 'PostarJogo')
 
-        elif str(datetime.now().day) == dataPSN[-3] and datetime.now().strftime('%H') > dataPSN[-2:]:
-            jogosPSN = buscar.psnStore()
-            for jogoPSN in jogosPSN:
-                print('JOGO PSN\n', jogoPSN)
-                print('TWEET PSN')
-                twitterBot.postarTweet(jogoPSN, 'PostarJogo')
+        # elif str(datetime.now().day) == dataPSN[-3] and datetime.now().strftime('%H') > dataPSN[-2:]:
+        #     jogosPSN = buscar.psnStore()
+        #     for jogoPSN in jogosPSN:
+        #         print('JOGO PSN\n', jogoPSN)
+        #         print('TWEET PSN')
+        #         twitterBot.postarTweet(jogoPSN, 'PostarJogo')
 
-            print('\n===================================================================================================\n')
+            # print('\n===================================================================================================\n')
             
         jogosEpic = buscar.epicGamesStore()
         for jogo in jogosEpic:
