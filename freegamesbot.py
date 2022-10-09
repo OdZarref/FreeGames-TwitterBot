@@ -173,8 +173,10 @@ class SeleniumBusca:
         for article in articles:
             itemId = article.get_attribute('id')
 
-            if itemId == pegarUltimoVistoFreeSteamKeys(self):
-                break
+            try:
+                if itemId == pegarUltimoVistoFreeSteamKeys(self):
+                    break
+            except FileNotFoundError: pass
 
             if not itemId == 'post-':
                 if contador == 0: ultimoVistoId = itemId
@@ -431,7 +433,7 @@ class TwitterBotClass():
             if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''): hashtags += '#epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']: hashtags += '#steam #pcgaming'
             elif 'psn' in dadosJogo['loja']: hashtags += '#playstation4 #psn'
-            string = f"⚠️ REMINDER ⚠️\n\nIt's your last chance to take {dadosJogo['nome']} for free on {dadosJogo['loja'].upper()}. Will expire in the next few hours!\n\n"
+            string = f"⚠️ REMINDER ⚠️\n\nIt's your last chancte to grab {dadosJogo['nome']} for free on {dadosJogo['loja'].upper()}. Will expire in the next few hours!\n\n"
             if dadosJogo['loja'].lower() == 'psn': string += f"⚠️ Note: It's required PSN PLUS to grab this game for free.\n\n"
             if dadosJogo['gameOuDlc'] == 'dlc': string += f"⚠️ Note: It's necessary the base game {dadosJogo['gameNecessario']}.\n\n"
             string += f"Valid until: {tratarData(self, dadosJogo['validoAte'])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo['url']}"
@@ -544,7 +546,12 @@ if __name__ == '__main__':
 
         print('\n===================================================================================================\n')
         
-        dataPSN = open('psnData.txt').readline()
+        try:
+            dataPSN = open('psnData.txt').readline()
+        except FileNotFoundError:
+            open('psnData.txt', 'w').write('######')
+            dataPSN = open('psnData.txt').readline()
+
         if dataPSN.isalpha():
             jogosPSN = buscar.psnStore()
             for jogoPSN in jogosPSN:
