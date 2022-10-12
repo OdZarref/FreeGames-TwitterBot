@@ -41,7 +41,7 @@ class SeleniumBusca:
             else: ano = datetime.now().year
 
 
-            return f'{ano}{mes}{dia}' + '12'
+            return {'ano': str(ano), 'mes': str(mes), 'dia': str(dia), 'hora':'12'}
 
         def verificarJogoNaLista(jogo):
             """Verifica que o jogo do momento está na lista de jogos grátis já vistos.
@@ -80,35 +80,6 @@ class SeleniumBusca:
 
             except NoSuchElementException: pass
             except: print('erro')
-
-        # for jogo in jogos:
-        #     self.browser.get(jogo)
-        #     sleep(5)
-
-        #     try:
-        #         def pegarData(self, dataNaoTratada):
-        #             """Pega a frase onde está a data e seleciona apenas os números e os organiza.
-
-        #             Args:
-        #                 dataNaoTratada (str): A frase que contem a data.
-
-        #             Returns:
-        #                 str: Apenas os números e já organizados.
-        #             """
-        #             dataTratada = ''
-        #             for caractere in dataNaoTratada:
-        #                 if caractere.isnumeric(): dataTratada += caractere
-                    
-        #             dia = dataTratada[0:2]
-        #             mes = dataTratada[2:4]
-        #             ano = dataTratada[4:8]
-        #             hora = dataTratada[8:10]
-        #             data = f'{ano}{mes}{dia}{hora}'
-        #             return data
-                    
-        #         ateQuando = pegarData(self, self.browser.find_element_by_class_name('css-etnin6').text)
-        #         elementosNomeJogo = self.browser.find_elements_by_xpath('//span[@data-component="Message"]')
-        #         nomeJogo = elementosNomeJogo[1].text
 
         return jogosGratis
     
@@ -241,25 +212,27 @@ class SeleniumBusca:
                     textoData (str): A frase que contem a data.
 
                 Returns:
-                    str: A data tratada.
+                    dict: A data tratada.
                 """
                 ano = datetime.now().year
                 listaAbreviacoesMeses = ['jan', 'fev', 'mar', 'abr', 'maio', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+                dataGame = dict()
+
 
                 for posicao, mes in enumerate(listaAbreviacoesMeses):
-                    if mes in textoData: numeroMes = posicao + 1
+                    if mes in textoData: dataGame['mes'] = posicao + 1
                         
                 for posicao, caractere in enumerate(textoData):
                     if caractere.isnumeric():
-                        if textoData[posicao + 1].isnumeric(): dia = caractere + textoData[posicao + 1]
-                        else: dia = '0' + caractere
+                        if textoData[posicao + 1].isnumeric(): dataGame['dia'] = caractere + textoData[posicao + 1]
+                        else: dataGame['dia'] = '0' + caractere
                         break
                 
                 for posicao, caractere in enumerate(textoData):
                     if caractere.isnumeric():
                         if textoData[posicao + 1].isnumeric() and textoData[posicao + 2] == ':':
-                            hora = caractere + textoData[posicao + 1]
-                return f'{ano}{numeroMes}{dia}{hora}'
+                            dataGame['hora'] = caractere + textoData[posicao + 1]
+                return dataGame
 
             sleep(5)
             try: nomeJogo = self.browser.find_element_by_id('appHubAppName').text
@@ -277,10 +250,10 @@ class SeleniumBusca:
 
             try: ateQuando = pegarData(self, self.browser.find_element_by_css_selector('p.game_purchase_discount_quantity ').text)
             except NoSuchElementException: ateQuando = 'Information Unavailable'
-            except: print('ERRO AQUI')
 
             dadosJogo = {'nome':nomeJogo, 'url':urlJogo, 'validoAte': ateQuando, 'loja':'steam', 'gameOuDlc':gameOuDlc, 'gameNecessario':gameNecessario, 'lembretePostado': False}
-            salvarJogoGratis(str(dadosJogo))
+            if ateQuando != 'Information Unavailable':
+                salvarJogoGratis(str(dadosJogo))
             return dadosJogo
 
         print('\nCOLETANDO DADOS DOS JOGOS STEAM\n')
@@ -307,7 +280,7 @@ class SeleniumBusca:
         returns:
             list: Lista com os dicionários dos jogos gratuitos.
         """
-        def buscarDadosJogoPSNStore(self, listaURLSJogos):
+        def buscarDadosJogosPSNStore(listaURLSJogos):
             def verificarJogoNaListaPSN(self, urlJogo):
                 """Verificará se o jogo já está na lista de jogos grátis.
 
@@ -330,70 +303,55 @@ class SeleniumBusca:
                 arquivo = open('games_list.txt', 'a')
                 arquivo.write(str(jogo) + '\n')
 
-            def pegarAteQuando(self):
-                """Pegará a data de até quando o jogo estará gratuito.
-                """
-                def tratarHora(self, strHora, periodo):
-                    """Transformará o formato de hora em 24h.
-
-                    Args:
-                        strHora (str): Texto com a hora de até quando o jogo ficará gratuito.
-                        periodo (str): Se é PM ou AM.
-
-                    Returns:
-                        str: A hora em formade de 24h.
-                    """
-                    if 'pm' in periodo:  return str(int(strHora) + 12)
-                    else: return strHora
-
-                def tratarAteQuando(self, ateQuando, hora):
-                    """Pega a data de até quando o jogo ficará gratuito e a trata e junta com a hora. Organizando em aaaa/mm/dd/hh.
-
-                    Args:
-                        ateQuando (str): Data não tratada, contem '/'.
-                        hora (str): A hora de até quando o jogo ficará gratuito.
-                    returns:
-                        (str): A data junto com a hora em formato aaaa/mm/dd/hh
-                    """
-                    def salvarDataPSN(self, data):
-                        """Salva em um arquivo txt quando novos jogos ficarão gratuitos na PSN.
-
-                        Args:
-                            data (str): A data de quando os jogos atuais deixarão de ser gratuitos.
-                        """
-                        with open('psnData.txt', 'w') as arquivo: arquivo.write(data)
-
-                    ateQuandoLista = ateQuando.split('/')
-                    ano = ateQuandoLista[2]
-                    mes = ateQuandoLista[1]
-                    dia = '0' + ateQuandoLista[0]
-                    data = ano + mes + dia + hora
-                    salvarDataPSN(self, data)
-                    return data
-
-                ateQuandoTexto = self.browser.find_element_by_class_name('price-availability').text.split()
-                ateQuando = tratarAteQuando(self, ateQuandoTexto[-3], tratarHora(self, ateQuandoTexto[-2][:2], ateQuandoTexto[-1]))
-                return ateQuando
-
             for url in listaURLSJogos:
                 self.browser.get(url)
                 sleep(10)
-                nome = self.browser.find_element_by_class_name('pdp__title').text
-                ateQuando = pegarAteQuando(self)
-                dadosJogo = {'nome': nome, 'url': url, 'validoAte': ateQuando, 'gameOuDlc': 'game', 'loja': 'psn', 'lembretePostado': False}
-                if not verificarJogoNaListaPSN(self, dadosJogo['url']):
-                    jogosGratisPSN.append(dadosJogo)
-                    atualizarJogoGratisPSN(self, dadosJogo)
+                nome = self.browser.find_element_by_class_name('psw-t-title-l').text
+                if nome == 'Edições': nome = self.browser.find_element_by_class_name('game-title').text
+                elementosNome = self.browser.find_elements_by_class_name('psw-c-t-2')
+                for elemento in elementosNome:
+                    if 'oferta' in elemento.text:
+                        palavras = elemento.text.split()
+                        data = palavras[4].split('/')
+                        dataTratada = dict()
+                        if len(data[0]) == 1: dataTratada['dia'] = '0' + data[0]
+                        else: dataTratada['dia'] = data[0]
+                        dataTratada['mes'] = data[1]
+                        dataTratada['ano'] = data[2]
+                        dataTratada['hora']= palavras[5][0:2]
+                        dadosJogo = {'nome': nome, 'url': url, 'validoAte': dataTratada, 'loja': 'PSN', 'gameOuDlc': 'game', 'lembretePostado': False}
+                        print(dadosJogo)
+
+                        with open('games_list.txt', 'r') as arquivoGames:
+                            jogoJaExistente = False
+
+                            for linha in arquivoGames.readlines():
+                                if dadosJogo['nome'] in linha: jogoJaExistente = True
+
+                            if not jogoJaExistente:
+                                open('games_list.txt', 'a').write(str(dadosJogo) + '\n')
+                                jogosGratisPSN.append(dadosJogo)
                 
         print('PROCURANDO JOGOS PSN')
         jogosGratisPSN = list()
-        self.browser.get('https://store.playstation.com/pt-br/grid/STORE-MSF77008-PSPLUSFREEGAMES/1')
+        urlJogosGratisPSN = list()
+        self.browser.get('https://www.playstation.com/pt-br/ps-plus/whats-new/#monthly-games')
         sleep(10)
-        jogosDivs = self.browser.find_elements_by_css_selector('div.grid-cell-row__container > div')
-        jogosPSN = list()
-        for jogoDiv in jogosDivs: jogosPSN.append(jogoDiv.find_element_by_tag_name('a').get_attribute('href'))
-        buscarDadosJogoPSNStore(self, jogosPSN)
+        elementos = self.browser.find_elements_by_class_name('cta__primary')
+        for elemento in elementos:
+            link = elemento.get_attribute('href')
+            
+            try:
+                if 'https://www.playstation.com/pt-br/games/' in link: urlJogosGratisPSN.append(link)
+            except TypeError: 
+                pass
+
+        buscarDadosJogosPSNStore(urlJogosGratisPSN)
         return jogosGratisPSN
+
+
+
+
 
     def fecharNavegador(self):
         """Fecha o navegador e apaga o arquivo de log gerado por ele.
@@ -427,7 +385,7 @@ class TwitterBotClass():
             Returns:
                 str: A data sem a hora.
             """
-            if not 'information unavailable' in data.lower(): dataTratada = f'{data[0:4]}-{data[4:6]}-{data[6:8]}'
+            if not 'information unavailable' in str(data.lower()): dataTratada = f'{data[0:4]}-{data[4:6]}-{data[6:8]}'
             else: dataTratada = data
             return dataTratada
 
@@ -437,14 +395,15 @@ class TwitterBotClass():
             Returns:
                 str: O texto a ser publicado.
             """
+            dataJogo = dadosJogo['validoAte']
             hashtags = f'#freegames' + ' '
             if 'epicgames' == dadosJogo['loja'].lower().replace(' ', ''): hashtags += '#epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']: hashtags += '#steam #pcgaming'
-            elif 'psn' in dadosJogo['loja']: hashtags += '#playstation4 #psn'
+            elif 'psn' in dadosJogo['loja']: hashtags += '#playstation #psn'
             string = f'🎮 A NEW {dadosJogo["gameOuDlc"].upper()} IS FOR FREE! 🎮\n\n{dadosJogo["nome"]} is for free on {dadosJogo["loja"].upper()}.\n\n'
             if dadosJogo['loja'].lower() == 'psn': string += f"⚠️ Note: It's required PSN PLUS to grab this game for free.\n\n"
             if dadosJogo['gameOuDlc'] == 'dlc': string += f"⚠️ Note: It's necessary the base game {dadosJogo['gameNecessario']}.\n\n"
-            string += f'Valid until: {tratarData(self, dadosJogo["validoAte"])}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
+            string += f'Valid until: {dataJogo["mes"]}/{dataJogo["dia"]}/{dataJogo["ano"]}\n\nFavorite ❤️ and Reply ↩️\n\n{hashtags}\n{dadosJogo["url"]}'
             return string
 
         def criarTextoTweetLembrete(self):
@@ -456,7 +415,7 @@ class TwitterBotClass():
             hashtags = f'#freegames' + ' '
             if 'epicgamesstore' == dadosJogo['loja'].lower().replace(' ', ''): hashtags += '#epicgames #pcgaming'
             elif 'steam' in dadosJogo['loja']: hashtags += '#steam #pcgaming'
-            elif 'psn' in dadosJogo['loja']: hashtags += '#playstation4 #psn'
+            elif 'psn' in dadosJogo['loja'].lower(): hashtags += '#playstation #psn'
             string = f"⚠️ REMINDER ⚠️\n\nIt's your last chance to grab {dadosJogo['nome']} for free on {dadosJogo['loja'].upper()}. Will expire in the next few hours!\n\n"
             if dadosJogo['loja'].lower() == 'psn': string += f"⚠️ Note: It's required PSN PLUS to grab this game for free.\n\n"
             if dadosJogo['gameOuDlc'] == 'dlc': string += f"⚠️ Note: It's necessary the base game {dadosJogo['gameNecessario']}.\n\n"
@@ -469,12 +428,12 @@ class TwitterBotClass():
         elif tipo == 'PostarLembrete':
             textoTweet = criarTextoTweetLembrete(self)
             print(textoTweet)
-        # self.api.update_status(textoTweet)
+        self.api.update_status(textoTweet)
 
     def mandarMensagem(self):
         """Manda uma mensagem na minha conta principal, mostrando que o bot continua funcionando.
         """
-        self.api.send_direct_message(minhaContaPrincipal, 'TESTE BEM SUCEDIDO')
+        # self.api.send_direct_message(minhaContaPrincipal, 'TESTE BEM SUCEDIDO')
 
 def esperar(hora):
     """Função de espera.
@@ -510,22 +469,18 @@ def verificarJogosAindaValidos(twitterBot):
             boolean: "True" se ainda for válido e "False" se não.
         """
         data = datetime.now()
-        dataGameAno = int(dataGame[0:4])
 
-        if dataGameAno > data.year:
+        if int(dataGame['ano']) > data.year:
             return True
-        elif dataGameAno == data.year:
-            dataGameMes = int(dataGame[4:6])
-            if dataGameMes > data.month:
+        elif int(dataGame['ano']) == data.year:
+            if int(dataGame['mes']) > data.month:
                 return True
-            elif dataGameMes == data.month:
-                dataGameDia = int(dataGame[6:8])
-                if dataGameDia > data.day:
+            elif int(dataGame['mes']) == data.month:
+                if int(dataGame['dia']) > data.day:
                     return True
-                elif dataGameDia == data.day:
-                    dataGameHora = int(dataGame[8:10])
-                    if dataGameHora > data.hour:
-                        if dataGameHora - data.hour <= 5:
+                elif int(dataGame['dia']) == data.day:
+                    if int(dataGame['hora']) > data.hour:
+                        if int(dataGame['hora']) - data.hour <= 5:
                             try:
                                 if not dicionarioJogo['lembretePostado']:
                                     twitterBot.postarTweet(dicionarioJogo, 'PostarLembrete')
@@ -548,7 +503,8 @@ def verificarJogosAindaValidos(twitterBot):
 
     for jogo in listaJogos:
         dicionarioJogo = literal_eval(jogo.replace('\n', ''))
-        if dicionarioJogo['validoAte'].isnumeric():
+        if dicionarioJogo['validoAte'] and dicionarioJogo['validoAte'] != 'Information Unavailable':
+            print(dicionarioJogo['validoAte'])
             if verificarDataEpostarLembrete(dicionarioJogo['validoAte']): listaTemp.write(str(dicionarioJogo) + '\n')
     
     listaJogos.close()
@@ -559,6 +515,7 @@ def verificarJogosAindaValidos(twitterBot):
 if __name__ == '__main__':
     while True:
         buscar = SeleniumBusca()
+
         jogosFreeSteamKeys = buscar.procurarFreeSteamKeys()
         jogosSteam = buscar.steamStore(jogosFreeSteamKeys)
         twitterBot = TwitterBotClass()
@@ -570,27 +527,10 @@ if __name__ == '__main__':
 
         print('\n===================================================================================================\n')
         
-        # try:
-        #     dataPSN = open('psnData.txt').readline()
-        # except FileNotFoundError:
-        #     open('psnData.txt', 'w').write('######')
-        #     dataPSN = open('psnData.txt').readline()
+        for jogo in buscar.psnStore():
+            twitterBot.postarTweet(jogo, 'PostarJogo')
 
-        # if dataPSN.isalpha():
-        #     jogosPSN = buscar.psnStore()
-        #     for jogoPSN in jogosPSN:
-        #         print('JOGO PSN\n', jogoPSN)
-        #         print('TWEET PSN')
-        #         twitterBot.postarTweet(jogoPSN, 'PostarJogo')
-
-        # elif str(datetime.now().day) == dataPSN[-3] and datetime.now().strftime('%H') > dataPSN[-2:]:
-        #     jogosPSN = buscar.psnStore()
-        #     for jogoPSN in jogosPSN:
-        #         print('JOGO PSN\n', jogoPSN)
-        #         print('TWEET PSN')
-        #         twitterBot.postarTweet(jogoPSN, 'PostarJogo')
-
-            # print('\n===================================================================================================\n')
+        print('\n===================================================================================================\n')
             
         jogosEpic = buscar.epicGamesStore()
         for jogo in jogosEpic:
@@ -599,7 +539,7 @@ if __name__ == '__main__':
             print('TWEET EPIC')
             twitterBot.postarTweet(jogo, 'PostarJogo')
         
-        # twitterBot.mandarMensagem()
+        twitterBot.mandarMensagem()
         buscar.fecharNavegador()
         print('PROCURANDO NOVAMENTE EM 1 HORA...')
         esperar(1)
